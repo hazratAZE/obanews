@@ -16,7 +16,7 @@ const WelcomeScreen = () => {
 
   const handleContinue = () => {
     if (name.trim() === '') {
-      Alert.alert('Lutfen isim giriniz!');
+      Alert.alert('Zəhmət olmasa adınızı daxil edin!');
       return;
     }
     console.log('Kullanıcı ismi:', name);
@@ -46,7 +46,7 @@ const WelcomeScreen = () => {
 
         <TextInput
           style={styles.input}
-          placeholder="İsminizi girin"
+          placeholder="Adınızı daxil edin"
           placeholderTextColor={'#999'}
           value={name}
           onChangeText={setName}
