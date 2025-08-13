@@ -9,8 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
-import LottieView from 'lottie-react-native';
 const WelcomeScreen = () => {
   const [name, setName] = useState('');
 
@@ -27,18 +27,11 @@ const WelcomeScreen = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <LottieView
-        source={require('../assets/animations/man.json')}
-        autoPlay
-        loop
-        style={{
-          width: 200,
-          height: 200,
-          alignSelf: 'center',
-          marginBottom: 20,
-        }}
-      />
       <View style={styles.content}>
+        <Image
+          source={require('../assets/images/obamarket.jpg')}
+          style={styles.logo}
+        />
         <Text style={styles.title}>Salam, Hörmətli İstifadəçi</Text>
         <Text style={styles.subtitle}>
           ObaNews ilə xəbərlər həmişə cibində olsun!
@@ -72,6 +65,13 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
   },
+  logo: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: '600',
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#28a745',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
