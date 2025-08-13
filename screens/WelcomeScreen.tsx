@@ -10,7 +10,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-
+import LottieView from 'lottie-react-native';
 const WelcomeScreen = () => {
   const [name, setName] = useState('');
 
@@ -19,7 +19,6 @@ const WelcomeScreen = () => {
       Alert.alert('Lutfen isim giriniz!');
       return;
     }
-    // Burada devam etme işlemi (örn. navigasyon) yapılabilir
     console.log('Kullanıcı ismi:', name);
   };
 
@@ -28,9 +27,22 @@ const WelcomeScreen = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <LottieView
+        source={require('../assets/animations/man.json')}
+        autoPlay
+        loop
+        style={{
+          width: 200,
+          height: 200,
+          alignSelf: 'center',
+          marginBottom: 20,
+        }}
+      />
       <View style={styles.content}>
-        <Text style={styles.title}>Merhaba kullanıcı,</Text>
-        <Text style={styles.subtitle}>ObaNews appine hoş geldiniz!</Text>
+        <Text style={styles.title}>Salam, Hörmətli İstifadəçi</Text>
+        <Text style={styles.subtitle}>
+          ObaNews ilə xəbərlər həmişə cibində olsun!
+        </Text>
 
         <TextInput
           style={styles.input}
@@ -41,7 +53,7 @@ const WelcomeScreen = () => {
         />
 
         <TouchableOpacity style={styles.button} onPress={handleContinue}>
-          <Text style={styles.buttonText}>Devam Et</Text>
+          <Text style={styles.buttonText}>Davam Et</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -67,7 +79,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     marginBottom: 30,
     textAlign: 'center',
     color: '#555',
@@ -95,6 +107,3 @@ const styles = StyleSheet.create({
 });
 
 export default WelcomeScreen;
-function alert(arg0: string) {
-  throw new Error('Function not implemented.');
-}
