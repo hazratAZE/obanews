@@ -117,7 +117,11 @@ const App = () => {
             component={HomeDrawer}
             options={{ headerShown: false }}
           />
-          <Stack.Screen name="NewsInner" component={NewsInnerScreen} />
+          <Stack.Screen
+            name="NewsInner"
+            component={NewsInnerScreen}
+            options={{ title: 'Xəbər' }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>

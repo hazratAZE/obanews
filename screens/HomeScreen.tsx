@@ -14,7 +14,8 @@ import { RootStackParamList } from '../types/navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
-
+import Skeleton from '../components/Skeleton';
+import { BackHandler, Alert } from 'react-native';
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'HomeDrawer'
@@ -67,7 +68,26 @@ const HomeScreen = () => {
       loadSavedNews();
     }, []),
   );
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert('Çıxış', 'Tətbiqdən çıxmaq istəyirsiniz?', [
+          { text: 'Xeyr', style: 'cancel' },
+          { text: 'Bəli', onPress: () => BackHandler.exitApp() },
+        ]);
+        return true;
+      };
 
+      // event əlavə edirik
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      // cleanup
+      return () => subscription.remove();
+    }, []),
+  );
   // daha çox xəbər yüklə
   const loadMore = () => {
     const currentLength = visibleNews.length;
@@ -136,9 +156,25 @@ const HomeScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#28a745" />
-        <Text>Xəbərlər yüklənir...</Text>
+      <View style={{ padding: 16 }}>
+        <Skeleton
+          width="100%"
+          height={280}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
+        <Skeleton
+          width="100%"
+          height={280}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
+        <Skeleton
+          width="100%"
+          height={280}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
       </View>
     );
   }

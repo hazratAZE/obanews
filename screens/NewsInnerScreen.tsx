@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, NewsItem } from '../types/navigation';
+import Skeleton from '../components/Skeleton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewsInner'>;
 
@@ -39,9 +40,37 @@ const NewsInnerScreen: React.FC<Props> = ({ route }) => {
 
   if (loading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#28a745" />
-        <Text>Yüklənir...</Text>
+      <View>
+        <Skeleton
+          width="100%"
+          height={180}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
+        <Skeleton
+          width="100%"
+          height={20}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
+        <Skeleton
+          width="100%"
+          height={20}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
+        <Skeleton
+          width="100%"
+          height={16}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
+        <Skeleton
+          width="100%"
+          height={16}
+          borderRadius={12}
+          style={{ marginBottom: 16 }}
+        />
       </View>
     );
   }

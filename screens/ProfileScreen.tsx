@@ -16,6 +16,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import Skeleton from '../components/Skeleton';
 
 type NewsItem = {
   id: string;
@@ -67,16 +68,25 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.clear(); // Bütün AsyncStorage-i təmizlə
-      Alert.alert('Çıxış edildi!');
-      navigation.navigate('Welcome'); // WelcomeScreen-ə yönləndir
-    } catch (e) {
-      console.log('Logout zamanı xəta:', e);
-      Alert.alert('Xəta baş verdi, zəhmət olmasa yenidən cəhd edin.');
-    }
+  const handleLogout = () => {
+    Alert.alert('Çıxış', 'Çıxış etmək istədiyinizə əminsinizmi?', [
+      { text: 'Xeyr', style: 'cancel' },
+      {
+        text: 'Bəli',
+        onPress: async () => {
+          try {
+            await AsyncStorage.clear(); // bütün storage təmizlə
+            Alert.alert('Çıxış edildi!');
+            navigation.navigate('Welcome'); // Welcome screen-ə yönləndir
+          } catch (e) {
+            console.log('Logout zamanı xəta:', e);
+            Alert.alert('Xəta baş verdi, zəhmət olmasa yenidən cəhd edin.');
+          }
+        },
+      },
+    ]);
   };
+
   // AsyncStorage-dan saxlanan xəbərlərin id-lərini və xəbərləri yüklə
   useFocusEffect(
     useCallback(() => {
@@ -192,11 +202,20 @@ const ProfileScreen = () => {
 
       <Text style={styles.savedNewsHeader}>Saxlanan Xəbərlər</Text>
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#28a745"
-          style={{ marginTop: 20 }}
-        />
+        <View>
+          <Skeleton
+            width="100%"
+            height={280}
+            borderRadius={12}
+            style={{ marginBottom: 16 }}
+          />
+          <Skeleton
+            width="100%"
+            height={280}
+            borderRadius={12}
+            style={{ marginBottom: 16 }}
+          />
+        </View>
       ) : newsList.length === 0 ? (
         <Text style={{ textAlign: 'center', marginTop: 20, color: '#777' }}>
           Heç bir xəbər saxlanılmayıb.

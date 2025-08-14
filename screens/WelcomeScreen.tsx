@@ -1,5 +1,5 @@
 // /screens/WelcomeScreen.tsx
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
   Platform,
   Alert,
   Image,
+  BackHandler,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +25,26 @@ type WelcomeScreenNavigationProp = NativeStackNavigationProp<
 const WelcomeScreen = () => {
   const [name, setName] = useState('');
   const navigation = useNavigation<WelcomeScreenNavigationProp>();
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert('Çıxış', 'Tətbiqdən çıxmaq istəyirsiniz?', [
+          { text: 'Xeyr', style: 'cancel' },
+          { text: 'Bəli', onPress: () => BackHandler.exitApp() },
+        ]);
+        return true;
+      };
+
+      // event əlavə edirik
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+
+      // cleanup
+      return () => subscription.remove();
+    }, []),
+  );
 
   const handleContinue = async () => {
     if (name.trim() === '') {
