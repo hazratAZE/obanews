@@ -11,14 +11,25 @@ import {
   Alert,
   Image,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types/navigation';
+
+type WelcomeScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Welcome'
+>;
+
 const WelcomeScreen = () => {
   const [name, setName] = useState('');
+  const navigation = useNavigation<WelcomeScreenNavigationProp>();
 
   const handleContinue = () => {
     if (name.trim() === '') {
       Alert.alert('Zəhmət olmasa adınızı daxil edin!');
       return;
     }
+    navigation.navigate('Home'); // ✅ artıq xətasız
     console.log('Kullanıcı ismi:', name);
   };
 
@@ -33,9 +44,7 @@ const WelcomeScreen = () => {
           style={styles.logo}
         />
         <Text style={styles.title}>Salam, Hörmətli İstifadəçi</Text>
-        <Text style={styles.subtitle}>
-          ObaNews ilə xəbərlər həmişə cibində olsun!
-        </Text>
+        <Text style={styles.subtitle}>Davam etmək üçün adınızı daxil edin</Text>
 
         <TextInput
           style={styles.input}
