@@ -1,18 +1,20 @@
 // screens/SettingsScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingsScreen = () => {
-  const [mode, setMode] = useState<'white' | 'black'>('white');
+  const [isDarkMode, setIsDarkMode] = useState(false); // false = ağ, true = qara
 
   // AsyncStorage-dan mövcud mode-u oxu
   useEffect(() => {
     const loadMode = async () => {
       try {
         const storedMode = await AsyncStorage.getItem('@mode');
-        if (storedMode === 'black' || storedMode === 'white') {
-          setMode(storedMode);
+        if (storedMode === 'black') {
+          setIsDarkMode(true);
+        } else {
+          setIsDarkMode(false);
         }
       } catch (e) {
         console.log('Mode oxunmadı:', e);
@@ -21,11 +23,12 @@ const SettingsScreen = () => {
     loadMode();
   }, []);
 
-  const handleModeChange = async (selectedMode: 'white' | 'black') => {
+  const toggleSwitch = async (value: boolean) => {
     try {
-      setMode(selectedMode);
-      await AsyncStorage.setItem('@mode', selectedMode);
-      console.log('Mode AsyncStorage-a yazıldı:', selectedMode);
+      setIsDarkMode(value);
+      const mode = value ? 'black' : 'white';
+      await AsyncStorage.setItem('@mode', mode);
+      console.log('Mode AsyncStorage-a yazıldı:', mode);
     } catch (e) {
       console.log('Mode yazılmadı:', e);
     }
@@ -33,32 +36,29 @@ const SettingsScreen = () => {
 
   return (
     <View
-      style={[styles.container, mode === 'black' && styles.blackBackground]}
+      style={[
+        styles.container,
+        isDarkMode ? styles.blackBackground : styles.whiteBackground,
+      ]}
     >
-      <Text style={[styles.title, mode === 'black' && styles.blackText]}>
-        Uygulama Modu
+      <Text style={[styles.title, isDarkMode && styles.blackText]}>
+        Tətbiq Modu
       </Text>
 
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            mode === 'white' ? styles.selectedButton : null,
-          ]}
-          onPress={() => handleModeChange('white')}
-        >
-          <Text style={styles.buttonText}>Beyaz</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            mode === 'black' ? styles.selectedButton : null,
-          ]}
-          onPress={() => handleModeChange('black')}
-        >
-          <Text style={styles.buttonText}>Qara</Text>
-        </TouchableOpacity>
+      <View style={styles.switchContainer}>
+        <Text style={[styles.label, isDarkMode && styles.blackText]}>
+          Ağ Mod
+        </Text>
+        <Switch
+          trackColor={{ false: '#ccc', true: '#28a745' }}
+          thumbColor={isDarkMode ? '#fff' : '#f4f3f4'}
+          ios_backgroundColor="#3e3e3e"
+          onValueChange={toggleSwitch}
+          value={isDarkMode}
+        />
+        <Text style={[styles.label, isDarkMode && styles.blackText]}>
+          Qara Mod
+        </Text>
       </View>
     </View>
   );
@@ -68,8 +68,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  whiteBackground: {
+    backgroundColor: '#fff',
   },
   blackBackground: {
     backgroundColor: '#121212',
@@ -83,24 +86,14 @@ const styles = StyleSheet.create({
   blackText: {
     color: '#fff',
   },
-  buttonsContainer: {
+  switchContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '80%',
+    alignItems: 'center',
   },
-  button: {
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    backgroundColor: '#ccc',
+  label: {
+    fontSize: 18,
     marginHorizontal: 10,
-  },
-  selectedButton: {
-    backgroundColor: '#28a745',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#000',
   },
 });
 
