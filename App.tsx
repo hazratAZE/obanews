@@ -13,6 +13,7 @@ import HomeScreen from './screens/HomeScreen';
 import { RootStackParamList, HomeDrawerParamList } from './types/navigation';
 import ProfileScreen from './screens/ProfileScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import NewsInnerScreen from './screens/NewsInnerScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<HomeDrawerParamList>();
@@ -74,6 +75,11 @@ const App = () => {
             name="HomeDrawer"
             component={HomeDrawer}
             options={{ headerShown: false }} // Drawer öz header-ini göstərsin
+          />
+          <Stack.Screen
+            name="NewsInner"
+            component={NewsInnerScreen}
+            // Drawer öz header-ini göstərsin
           />
         </Stack.Navigator>
       </NavigationContainer>

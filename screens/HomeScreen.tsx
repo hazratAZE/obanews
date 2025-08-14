@@ -8,7 +8,14 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigation';
 
+type HomeScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'HomeDrawer'
+>;
 type NewsItem = {
   id: string;
   title: string;
@@ -21,7 +28,7 @@ const HomeScreen = () => {
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
   const [visibleNews, setVisibleNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   useEffect(() => {
     const fetchNews = async () => {
       try {
@@ -48,7 +55,10 @@ const HomeScreen = () => {
   };
 
   const renderItem = ({ item }: { item: NewsItem }) => (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('NewsInner', { news: item })}
+    >
       <Image
         source={{
           uri: 'https://thumbs.dreamstime.com/b/news-woodn-dice-depicting-letters-bundle-small-newspapers-leaning-left-dice-34802664.jpg',
