@@ -29,7 +29,7 @@ const WelcomeScreen = () => {
       Alert.alert('Zəhmət olmasa adınızı daxil edin!');
       return;
     }
-    navigation.navigate('Home'); // ✅ artıq xətasız
+    navigation.navigate('HomeDrawer');
     console.log('Kullanıcı ismi:', name);
   };
 
