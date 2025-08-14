@@ -1,52 +1,89 @@
-// screens/HomeScreen.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 
 type NewsItem = {
-  id: string;
+  author: string;
   title: string;
   description: string;
+  url: string;
+  urlToImage: string;
+  publishedAt: string;
 };
 
-const newsData: NewsItem[] = [
-  {
-    id: '1',
-    title: 'Texnologiya xəbərləri',
-    description: 'Yeni iPhone təqdim olundu və bazarda böyük maraq yaratdı.',
-  },
-  {
-    id: '2',
-    title: 'İdman xəbərləri',
-    description: 'Azərbaycan millisindən möhtəşəm qələbə!',
-  },
-  {
-    id: '3',
-    title: 'İqtisadiyyat xəbərləri',
-    description: 'Neft qiymətləri artmağa davam edir.',
-  },
-];
+const BATCH_SIZE = 10;
 
 const HomeScreen = () => {
+  const [allNews, setAllNews] = useState<NewsItem[]>([]);
+  const [visibleNews, setVisibleNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const response = await fetch(
+          'https://newsapi.org/v2/everything?q=tesla&from=2025-07-14&sortBy=publishedAt&apiKey=e43e3679e5074160bf7e2aa64cbd1be6',
+        );
+        const data = await response.json();
+        setAllNews(data.articles);
+        setVisibleNews(data.articles.slice(0, BATCH_SIZE)); // ilk batch
+      } catch (error) {
+        console.error('Xəbərlər yüklənmədi:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  const loadMore = () => {
+    const currentLength = visibleNews.length;
+    const nextBatch = allNews.slice(currentLength, currentLength + BATCH_SIZE);
+    setVisibleNews(prev => [...prev, ...nextBatch]);
+  };
+
   const renderItem = ({ item }: { item: NewsItem }) => (
     <TouchableOpacity style={styles.card}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.description}>{item.description}</Text>
+      {item.urlToImage ? (
+        <Image source={{ uri: item.urlToImage }} style={styles.image} />
+      ) : null}
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>{item.title}</Text>
+        {item.description ? (
+          <Text style={styles.description} numberOfLines={3}>
+            {item.description}
+          </Text>
+        ) : null}
+      </View>
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#28a745" />
+        <Text>Xəbərlər yüklənir...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <FlatList
-        data={newsData}
-        keyExtractor={item => item.id}
+        data={visibleNews}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
       />
     </View>
   );
@@ -57,33 +94,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9f9f9',
   },
-  header: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginVertical: 16,
-    textAlign: 'center',
-  },
   list: {
     paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   card: {
     backgroundColor: '#fff',
-    padding: 16,
-    marginBottom: 12,
     borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+    elevation: 2,
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+  },
+  image: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+  },
+  textContainer: {
+    padding: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 6,
   },
   description: {
     fontSize: 14,
     color: '#555',
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
