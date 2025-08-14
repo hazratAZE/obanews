@@ -67,10 +67,16 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert('Çıxış edildi!');
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear(); // Bütün AsyncStorage-i təmizlə
+      Alert.alert('Çıxış edildi!');
+      navigation.navigate('Welcome'); // WelcomeScreen-ə yönləndir
+    } catch (e) {
+      console.log('Logout zamanı xəta:', e);
+      Alert.alert('Xəta baş verdi, zəhmət olmasa yenidən cəhd edin.');
+    }
   };
-
   // AsyncStorage-dan saxlanan xəbərlərin id-lərini və xəbərləri yüklə
   useFocusEffect(
     useCallback(() => {
