@@ -11,6 +11,9 @@ import {
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -28,54 +31,108 @@ const HomeScreen = () => {
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
   const [visibleNews, setVisibleNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savedNewsIds, setSavedNewsIds] = useState<string[]>([]);
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const response = await fetch(
-          'https://jsonplaceholder.typicode.com/posts',
-        );
-        const data = await response.json();
-        setAllNews(data);
-        setVisibleNews(data.slice(0, BATCH_SIZE)); // ilk batch
-      } catch (error) {
-        console.error('Xəbərlər yüklənmədi:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchNews();
-  }, []);
+  // xəbərləri yüklə
+  useFocusEffect(
+    useCallback(() => {
+      const fetchNews = async () => {
+        try {
+          const response = await fetch(
+            'https://jsonplaceholder.typicode.com/posts',
+          );
+          const data = await response.json();
+          setAllNews(data);
+          setVisibleNews(data.slice(0, BATCH_SIZE));
+        } catch (error) {
+          console.error('Xəbərlər yüklənmədi:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
+      const loadSavedNews = async () => {
+        try {
+          const storedIds = await AsyncStorage.getItem('@savedNews');
+          if (storedIds) {
+            setSavedNewsIds(JSON.parse(storedIds));
+          }
+        } catch (e) {
+          console.log('AsyncStorage-dan savedNews oxunmadı:', e);
+        }
+      };
+
+      fetchNews();
+      loadSavedNews();
+    }, []),
+  );
+
+  // daha çox xəbər yüklə
   const loadMore = () => {
     const currentLength = visibleNews.length;
     const nextBatch = allNews.slice(currentLength, currentLength + BATCH_SIZE);
     setVisibleNews(prev => [...prev, ...nextBatch]);
   };
 
-  const renderItem = ({ item }: { item: NewsItem }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('NewsInner', { news: item })}
-    >
-      <Image
-        source={{
-          uri: 'https://thumbs.dreamstime.com/b/news-woodn-dice-depicting-letters-bundle-small-newspapers-leaning-left-dice-34802664.jpg',
-        }}
-        style={styles.image}
-      />
+  // save / unsave funksiyası
+  const toggleSaveNews = async (id: string) => {
+    try {
+      let updatedIds = [...savedNewsIds];
+      if (updatedIds.includes(id)) {
+        updatedIds = updatedIds.filter(savedId => savedId !== id);
+      } else {
+        updatedIds.push(id);
+      }
+      setSavedNewsIds(updatedIds);
+      await AsyncStorage.setItem('@savedNews', JSON.stringify(updatedIds));
+    } catch (e) {
+      console.log('Xəbər yadda saxlanmadı:', e);
+    }
+  };
 
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{item.title}</Text>
-        {item.body ? (
-          <Text style={styles.description} numberOfLines={3}>
-            {item.body}
-          </Text>
-        ) : null}
+  // hər xəbər üçün kart
+  const renderItem = ({ item }: { item: NewsItem }) => {
+    const isSaved = savedNewsIds.includes(item.id.toString());
+
+    return (
+      <View style={styles.card}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('NewsInner', { news: item })}
+          activeOpacity={0.8}
+        >
+          <Image
+            source={{
+              uri: 'https://thumbs.dreamstime.com/b/news-woodn-dice-depicting-letters-bundle-small-newspapers-leaning-left-dice-34802664.jpg',
+            }}
+            style={styles.image}
+          />
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>{item.title}</Text>
+            {item.body ? (
+              <Text style={styles.description} numberOfLines={3}>
+                {item.body}
+              </Text>
+            ) : null}
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={() => toggleSaveNews(item.id.toString())}
+        >
+          <Image
+            source={
+              isSaved
+                ? require('../assets/icons/saved.png') // əgər saxlanıbsa
+                : require('../assets/icons/save.png') // əgər saxlanmayıbsa
+            }
+            style={styles.saveIcon}
+          />
+        </TouchableOpacity>
       </View>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -105,6 +162,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9f9f9',
   },
+  saveIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#000', // rəngi dəyişmək istəsən burdan
+  },
+
   list: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -119,6 +182,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    position: 'relative',
   },
   image: {
     width: '100%',
@@ -136,6 +200,15 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 14,
     color: '#555',
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 4,
+    elevation: 3,
   },
   loader: {
     flex: 1,

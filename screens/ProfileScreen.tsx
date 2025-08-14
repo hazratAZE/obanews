@@ -14,6 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/core';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 type NewsItem = {
   id: string;
@@ -21,20 +23,16 @@ type NewsItem = {
   body: string;
 };
 
-type SavedNewsId = string[];
-
 type WelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'Welcome'
 >;
 
-// Sadəcə saxlanan xəbərlərin id-ləri
-const savedNewsIds: SavedNewsId = ['1', '2', '3'];
-
 const ProfileScreen = () => {
   const [username, setUsername] = useState('Hörmətli İstifadəçi');
   const [inputName, setInputName] = useState(username);
   const [newsList, setNewsList] = useState<NewsItem[]>([]);
+  const [savedNewsIds, setSavedNewsIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<WelcomeScreenNavigationProp>();
 
@@ -52,7 +50,7 @@ const ProfileScreen = () => {
       }
     };
     loadUsername();
-  }, []);
+  }, [savedNewsIds]);
 
   // AsyncStorage və state-i yenilə
   const handleRefresh = async () => {
@@ -73,48 +71,94 @@ const ProfileScreen = () => {
     Alert.alert('Çıxış edildi!');
   };
 
-  // Saxlanan id-lər üzrə API-dən xəbərləri çək
-  useEffect(() => {
-    const fetchSavedNews = async () => {
-      setLoading(true);
-      try {
-        const promises = savedNewsIds.map(id =>
-          fetch(`https://jsonplaceholder.typicode.com/posts/${id}`).then(res =>
-            res.json(),
-          ),
-        );
-        const results = await Promise.all(promises);
-        setNewsList(results);
-      } catch (e) {
-        console.log('Xəbərlər yüklənmədi:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSavedNews();
-  }, []);
+  // AsyncStorage-dan saxlanan xəbərlərin id-lərini və xəbərləri yüklə
+  useFocusEffect(
+    useCallback(() => {
+      const fetchSavedNews = async () => {
+        setLoading(true);
+        try {
+          const storedIds = await AsyncStorage.getItem('@savedNews');
+          const ids: string[] = storedIds ? JSON.parse(storedIds) : [];
+          setSavedNewsIds(ids);
 
-  const renderItem = ({ item }: { item: NewsItem }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('NewsInner', { news: item })}
-    >
-      <Image
-        source={{
-          uri: 'https://thumbs.dreamstime.com/b/news-woodn-dice-depicting-letters-bundle-small-newspapers-leaning-left-dice-34802664.jpg',
-        }}
-        style={styles.image}
-      />
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>{item.title}</Text>
-        {item.body ? (
-          <Text style={styles.description} numberOfLines={3}>
-            {item.body}
-          </Text>
-        ) : null}
-      </View>
-    </TouchableOpacity>
+          if (ids.length === 0) {
+            setNewsList([]);
+            return;
+          }
+
+          const promises = ids.map(id =>
+            fetch(`https://jsonplaceholder.typicode.com/posts/${id}`).then(
+              res => res.json(),
+            ),
+          );
+          const results = await Promise.all(promises);
+          setNewsList(results);
+        } catch (e) {
+          console.log('Xəbərlər yüklənmədi:', e);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSavedNews();
+    }, []),
   );
+  // save / unsave funksiyası
+  const toggleSaveNews = async (id: string) => {
+    try {
+      let updatedIds = [...savedNewsIds];
+      if (updatedIds.includes(id)) {
+        updatedIds = updatedIds.filter(savedId => savedId !== id);
+      } else {
+        updatedIds.push(id);
+      }
+      setSavedNewsIds(updatedIds);
+      await AsyncStorage.setItem('@savedNews', JSON.stringify(updatedIds));
+    } catch (e) {
+      console.log('Xəbər yadda saxlanmadı:', e);
+    }
+  };
+  const renderItem = ({ item }: { item: NewsItem }) => {
+    const isSaved = savedNewsIds.includes(item.id.toString());
+
+    return (
+      <View style={styles.card}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('NewsInner', { news: item })}
+          activeOpacity={0.8}
+        >
+          <Image
+            source={{
+              uri: 'https://thumbs.dreamstime.com/b/news-woodn-dice-depicting-letters-bundle-small-newspapers-leaning-left-dice-34802664.jpg',
+            }}
+            style={styles.image}
+          />
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>{item.title}</Text>
+            {item.body ? (
+              <Text style={styles.description} numberOfLines={3}>
+                {item.body}
+              </Text>
+            ) : null}
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={() => toggleSaveNews(item.id.toString())}
+        >
+          <Image
+            source={
+              isSaved
+                ? require('../assets/icons/saved.png') // əgər saxlanıbsa
+                : require('../assets/icons/save.png') // əgər saxlanmayıbsa
+            }
+            style={styles.saveIcon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -147,6 +191,10 @@ const ProfileScreen = () => {
           color="#28a745"
           style={{ marginTop: 20 }}
         />
+      ) : newsList.length === 0 ? (
+        <Text style={{ textAlign: 'center', marginTop: 20, color: '#777' }}>
+          Heç bir xəbər saxlanılmayıb.
+        </Text>
       ) : (
         <FlatList
           data={newsList}
@@ -170,6 +218,20 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginVertical: 14,
   },
+  saveIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#000', // rəngi dəyişmək istəsən burdan
+  },
+  saveButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 4,
+    elevation: 3,
+  },
   input: {
     width: '80%',
     alignSelf: 'center',
@@ -180,6 +242,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 8,
     backgroundColor: '#fff',
+    color: 'black',
   },
   buttonsRow: {
     flexDirection: 'row',
@@ -205,18 +268,6 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   savedNewsList: { flex: 1 },
-  newsCard: {
-    backgroundColor: '#fff',
-    padding: 12,
-    marginBottom: 8,
-    borderRadius: 8,
-    marginHorizontal: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  newsText: { fontSize: 14, color: '#555' },
   title: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
   description: { fontSize: 14, color: '#555' },
   card: {

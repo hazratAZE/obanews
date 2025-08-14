@@ -36,6 +36,13 @@ const WelcomeScreen = () => {
       await AsyncStorage.setItem('@username', name);
       console.log('Kullanıcı ismi asyncstorage-da saxlandı:', name);
 
+      // Əgər savedNews daha əvvəl yoxdursa boş array yazırıq
+      const savedNews = await AsyncStorage.getItem('@savedNews');
+      if (!savedNews) {
+        await AsyncStorage.setItem('@savedNews', JSON.stringify([]));
+        console.log('Boş savedNews listi yaradıldı');
+      }
+
       // Sonra HomeDrawer-a yönləndiririk
       navigation.navigate('HomeDrawer');
     } catch (error) {
