@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type WelcomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -24,13 +25,23 @@ const WelcomeScreen = () => {
   const [name, setName] = useState('');
   const navigation = useNavigation<WelcomeScreenNavigationProp>();
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (name.trim() === '') {
       Alert.alert('Zəhmət olmasa adınızı daxil edin!');
       return;
     }
-    navigation.navigate('HomeDrawer');
-    console.log('Kullanıcı ismi:', name);
+
+    try {
+      // Adı AsyncStorage-a yazırıq
+      await AsyncStorage.setItem('@username', name);
+      console.log('Kullanıcı ismi asyncstorage-da saxlandı:', name);
+
+      // Sonra HomeDrawer-a yönləndiririk
+      navigation.navigate('HomeDrawer');
+    } catch (error) {
+      console.error('AsyncStorage-da yazmaq mümkün olmadı:', error);
+      Alert.alert('Xəta baş verdi, zəhmət olmasa yenidən cəhd edin.');
+    }
   };
 
   return (
