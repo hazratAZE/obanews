@@ -64,6 +64,13 @@ const WelcomeScreen = () => {
         console.log('Boş savedNews listi yaradıldı');
       }
 
+      // Əgər @mode yoxdur isə default olaraq "white" yazırıq
+      const mode = await AsyncStorage.getItem('@mode');
+      if (!mode) {
+        await AsyncStorage.setItem('@mode', 'white');
+        console.log('Default mode olaraq "white" saxlanıldı');
+      }
+
       // Sonra HomeDrawer-a yönləndiririk
       navigation.navigate('HomeDrawer');
     } catch (error) {

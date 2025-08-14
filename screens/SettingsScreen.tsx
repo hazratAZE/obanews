@@ -1,12 +1,34 @@
 // screens/SettingsScreen.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingsScreen = () => {
   const [mode, setMode] = useState<'white' | 'black'>('white');
 
-  const handleModeChange = (selectedMode: 'white' | 'black') => {
-    setMode(selectedMode);
+  // AsyncStorage-dan mövcud mode-u oxu
+  useEffect(() => {
+    const loadMode = async () => {
+      try {
+        const storedMode = await AsyncStorage.getItem('@mode');
+        if (storedMode === 'black' || storedMode === 'white') {
+          setMode(storedMode);
+        }
+      } catch (e) {
+        console.log('Mode oxunmadı:', e);
+      }
+    };
+    loadMode();
+  }, []);
+
+  const handleModeChange = async (selectedMode: 'white' | 'black') => {
+    try {
+      setMode(selectedMode);
+      await AsyncStorage.setItem('@mode', selectedMode);
+      console.log('Mode AsyncStorage-a yazıldı:', selectedMode);
+    } catch (e) {
+      console.log('Mode yazılmadı:', e);
+    }
   };
 
   return (
@@ -25,7 +47,7 @@ const SettingsScreen = () => {
           ]}
           onPress={() => handleModeChange('white')}
         >
-          <Text style={styles.buttonText}>White</Text>
+          <Text style={styles.buttonText}>Beyaz</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -35,7 +57,7 @@ const SettingsScreen = () => {
           ]}
           onPress={() => handleModeChange('black')}
         >
-          <Text style={styles.buttonText}>Black</Text>
+          <Text style={styles.buttonText}>Qara</Text>
         </TouchableOpacity>
       </View>
     </View>
