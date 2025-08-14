@@ -10,12 +10,9 @@ import {
 } from 'react-native';
 
 type NewsItem = {
-  author: string;
+  id: string;
   title: string;
-  description: string;
-  url: string;
-  urlToImage: string;
-  publishedAt: string;
+  body: string;
 };
 
 const BATCH_SIZE = 10;
@@ -29,11 +26,11 @@ const HomeScreen = () => {
     const fetchNews = async () => {
       try {
         const response = await fetch(
-          'https://newsapi.org/v2/everything?q=tesla&from=2025-07-14&sortBy=publishedAt&apiKey=e43e3679e5074160bf7e2aa64cbd1be6',
+          'https://jsonplaceholder.typicode.com/posts',
         );
         const data = await response.json();
-        setAllNews(data.articles);
-        setVisibleNews(data.articles.slice(0, BATCH_SIZE)); // ilk batch
+        setAllNews(data);
+        setVisibleNews(data.slice(0, BATCH_SIZE)); // ilk batch
       } catch (error) {
         console.error('Xəbərlər yüklənmədi:', error);
       } finally {
@@ -52,14 +49,18 @@ const HomeScreen = () => {
 
   const renderItem = ({ item }: { item: NewsItem }) => (
     <TouchableOpacity style={styles.card}>
-      {item.urlToImage ? (
-        <Image source={{ uri: item.urlToImage }} style={styles.image} />
-      ) : null}
+      <Image
+        source={{
+          uri: 'https://thumbs.dreamstime.com/b/news-woodn-dice-depicting-letters-bundle-small-newspapers-leaning-left-dice-34802664.jpg',
+        }}
+        style={styles.image}
+      />
+
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.title}</Text>
-        {item.description ? (
+        {item.body ? (
           <Text style={styles.description} numberOfLines={3}>
-            {item.description}
+            {item.body}
           </Text>
         ) : null}
       </View>
