@@ -1,5 +1,5 @@
 // screens/NewsInnerScreen.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList, NewsItem } from '../types/navigation';
 import Skeleton from '../components/Skeleton';
+import { ThemeContext } from '../global/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NewsInner'>;
 
@@ -18,7 +19,8 @@ const NewsInnerScreen: React.FC<Props> = ({ route }) => {
   const { news } = route.params; // HomeScreen-dən göndərilən news objesi
   const [newsDetail, setNewsDetail] = useState<NewsItem | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const { theme } = useContext(ThemeContext);
+  const isDarkMode = theme === 'black';
   useEffect(() => {
     const fetchNewsDetail = async () => {
       try {
@@ -84,15 +86,27 @@ const NewsInnerScreen: React.FC<Props> = ({ route }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? '#171717' : '#f9f9f9' },
+      ]}
+    >
       <Image
         source={{
           uri: 'https://thumbs.dreamstime.com/b/news-woodn-dice-depicting-letters-bundle-small-newspapers-leaning-left-dice-34802664.jpg',
         }}
         style={styles.image}
       />
-      <Text style={styles.title}>{newsDetail.title}</Text>
-      <Text style={styles.body}>{newsDetail.body}</Text>
+      <Text style={[styles.title, { color: isDarkMode ? 'white' : 'black' }]}>
+        {newsDetail.title}
+      </Text>
+      <Text
+        style={[styles.body, { color: isDarkMode ? '#f5f5f5' : '#555' }]}
+        numberOfLines={3}
+      >
+        {newsDetail.body}
+      </Text>
     </ScrollView>
   );
 };

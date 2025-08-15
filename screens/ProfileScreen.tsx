@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { RootStackParamList } from '../types/navigation';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Skeleton from '../components/Skeleton';
+import { ThemeContext } from '../global/ThemeContext';
 
 type NewsItem = {
   id: string;
@@ -36,7 +37,8 @@ const ProfileScreen = () => {
   const [savedNewsIds, setSavedNewsIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation<WelcomeScreenNavigationProp>();
-
+  const { theme } = useContext(ThemeContext);
+  const isDarkMode = theme === 'black';
   // AsyncStorage-dan istifadəçi adını oxu
   useEffect(() => {
     const loadUsername = async () => {
@@ -138,7 +140,12 @@ const ProfileScreen = () => {
     const isSaved = savedNewsIds.includes(item.id.toString());
 
     return (
-      <View style={styles.card}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: isDarkMode ? 'gray' : 'white' },
+        ]}
+      >
         <TouchableOpacity
           onPress={() => navigation.navigate('NewsInner', { news: item })}
           activeOpacity={0.8}
@@ -150,9 +157,19 @@ const ProfileScreen = () => {
             style={styles.image}
           />
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{item.title}</Text>
+            <Text
+              style={[styles.title, { color: isDarkMode ? 'white' : 'black' }]}
+            >
+              {item.title}
+            </Text>
             {item.body ? (
-              <Text style={styles.description} numberOfLines={3}>
+              <Text
+                style={[
+                  styles.description,
+                  { color: isDarkMode ? '#f5f5f5' : '#555' },
+                ]}
+                numberOfLines={3}
+              >
                 {item.body}
               </Text>
             ) : null}
@@ -177,13 +194,24 @@ const ProfileScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? '#171717' : '#f9f9f9' },
+      ]}
+    >
       <Image
         source={require('../assets/icons/usericon.png')}
         style={styles.icon}
       />
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: isDarkMode ? 'gray' : 'white',
+            color: isDarkMode ? 'white' : 'black',
+          },
+        ]}
         value={inputName}
         onChangeText={setInputName}
         placeholder="Adınızı daxil edin"
@@ -200,7 +228,14 @@ const ProfileScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.savedNewsHeader}>Saxlanan Xəbərlər</Text>
+      <Text
+        style={[
+          styles.savedNewsHeader,
+          { color: isDarkMode ? '#f5f5f5' : 'black' },
+        ]}
+      >
+        Saxlanan Xəbərlər
+      </Text>
       {loading ? (
         <View>
           <Skeleton
@@ -217,7 +252,13 @@ const ProfileScreen = () => {
           />
         </View>
       ) : newsList.length === 0 ? (
-        <Text style={{ textAlign: 'center', marginTop: 20, color: '#777' }}>
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: 20,
+            color: isDarkMode ? '#f5f5f5' : '#555',
+          }}
+        >
           Heç bir xəbər saxlanılmayıb.
         </Text>
       ) : (

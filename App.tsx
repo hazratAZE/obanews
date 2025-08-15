@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   StatusBar,
@@ -6,7 +6,11 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  NavigationContainer,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   createDrawerNavigator,
@@ -21,6 +25,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import NewsInnerScreen from './screens/NewsInnerScreen';
 import { RootStackParamList, HomeDrawerParamList } from './types/navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeProvider, ThemeContext } from './global/ThemeContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<HomeDrawerParamList>();
@@ -103,28 +108,42 @@ const App = () => {
   }
 
   return (
-    <>
-      <StatusBar barStyle="dark-content" backgroundColor="#f9f9f9" />
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName={initialRoute}>
-          <Stack.Screen
-            name="Welcome"
-            component={WelcomeScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="HomeDrawer"
-            component={HomeDrawer}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="NewsInner"
-            component={NewsInnerScreen}
-            options={{ title: 'Xəbər' }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </>
+    <ThemeProvider>
+      <ThemeContext.Consumer>
+        {({ theme }) => {
+          const isDarkMode = theme === 'black';
+          return (
+            <>
+              <StatusBar
+                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+                backgroundColor={isDarkMode ? '#000' : '#f9f9f9'}
+              />
+              <NavigationContainer
+                theme={isDarkMode ? DarkTheme : DefaultTheme}
+              >
+                <Stack.Navigator initialRouteName={initialRoute}>
+                  <Stack.Screen
+                    name="Welcome"
+                    component={WelcomeScreen}
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="HomeDrawer"
+                    component={HomeDrawer}
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="NewsInner"
+                    component={NewsInnerScreen}
+                    options={{ title: 'Xəbər' }}
+                  />
+                </Stack.Navigator>
+              </NavigationContainer>
+            </>
+          );
+        }}
+      </ThemeContext.Consumer>
+    </ThemeProvider>
   );
 };
 

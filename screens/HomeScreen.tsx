@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Skeleton from '../components/Skeleton';
 import { BackHandler, Alert } from 'react-native';
+import { ThemeContext } from '../global/ThemeContext';
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'HomeDrawer'
@@ -34,7 +35,8 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [savedNewsIds, setSavedNewsIds] = useState<string[]>([]);
   const navigation = useNavigation<HomeScreenNavigationProp>();
-
+  const { theme } = useContext(ThemeContext);
+  const isDarkMode = theme === 'black';
   // xəbərləri yüklə
   useFocusEffect(
     useCallback(() => {
@@ -116,7 +118,12 @@ const HomeScreen = () => {
     const isSaved = savedNewsIds.includes(item.id.toString());
 
     return (
-      <View style={styles.card}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: isDarkMode ? 'gray' : 'white' },
+        ]}
+      >
         <TouchableOpacity
           onPress={() => navigation.navigate('NewsInner', { news: item })}
           activeOpacity={0.8}
@@ -128,9 +135,19 @@ const HomeScreen = () => {
             style={styles.image}
           />
           <View style={styles.textContainer}>
-            <Text style={styles.title}>{item.title}</Text>
+            <Text
+              style={[styles.title, { color: isDarkMode ? 'white' : 'black' }]}
+            >
+              {item.title}
+            </Text>
             {item.body ? (
-              <Text style={styles.description} numberOfLines={3}>
+              <Text
+                style={[
+                  styles.description,
+                  { color: isDarkMode ? '#f5f5f5' : '#555' },
+                ]}
+                numberOfLines={3}
+              >
                 {item.body}
               </Text>
             ) : null}
@@ -180,7 +197,12 @@ const HomeScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? '#171717' : '#f9f9f9' },
+      ]}
+    >
       <FlatList
         data={visibleNews}
         keyExtractor={(item, index) => index.toString()}
